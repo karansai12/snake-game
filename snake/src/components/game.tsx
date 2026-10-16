@@ -14,9 +14,8 @@ const SNAKE_INITIAL_POSITION = [{ x: 5, y: 5 }];
 const FOOD_INITIAL_POSITION = { x: 5, y: 20 };
 const CELL_SIZE = 10
 const BORDER_WIDTH = 5
-const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 71 };
 const MOVE_INTERVAL = 50;
-const SCORE_INCREMENT = 10;
+const SCORE_INCREMENT = 1;
 
 export default function Game() {
     const [direction, setDirection] = React.useState<Direction>(Direction.RIGHT);
@@ -106,6 +105,7 @@ export default function Game() {
         setFood(FOOD_INITIAL_POSITION);
         setDirection(Direction.RIGHT);
         setIsGameOver(false);
+        setIsPaused(false);
         setScore(0);
     }
 
@@ -118,6 +118,7 @@ export default function Game() {
             <SafeAreaView style={styles.container}>
                 <Header isPaused={isPaused} pauseGame={pauseGame} reloadGame={reloadGame}>
                     <Text>Snake Game</Text>
+                    <Text style={{ fontSize: 18, fontWeight: "700" }}>Score: {score}</Text>
                 </Header>
                 <View style={styles.boundaries} onLayout={handleBoardLayout}>
                     <Snake snake={snake} />
