@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import { StyleSheet, View, SafeAreaView,LayoutChangeEvent, Text } from 'react-native';
 import { Colors } from '../styles/colors';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { Coordinate, Direction } from '../types/types';
@@ -7,10 +7,14 @@ import Snake from './snake';
 import { CheckGameOver } from '../utilis/checkOver';
 import Food from './food';
 import CheckEatsFood from '../utilis/checksEatsFood';
+import RandomFoodPosition from '../utilis/randomFoodPosition';
+import Header from './header';
 
 const SNAKE_INITIAL_POSITION = [{ x: 5, y: 5 }];
 const FOOD_INITIAL_POSITION = { x: 5, y: 20 };
-const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 70 };
+const CELL_SIZE = 10
+const BORDER_WIDTH = 5
+const GAME_BOUNDS = { xMin: 0, xMax: 35, yMin: 0, yMax: 71 };
 const MOVE_INTERVAL = 50;
 const SCORE_INCREMENT = 10;
 
@@ -21,24 +25,20 @@ export default function Game() {
     const [isGameOver, setIsGameOver] = React.useState<boolean>(false);
     const [isPaused, setIsPaused] = React.useState<boolean>(false);
     const [score,setScore] = React.useState<number>(0)
+    const [bounds, setBounds] = React.useState<{ xMin: number; xMax: number; yMin: number; yMax: number } | null>(null);
 
-    React.useEffect(() => {
-        if (!isPaused && !isGameOver) {
-            const intervalID = setInterval(() => {
-                !isPaused && moveSnake();
-            }, MOVE_INTERVAL)
-            return () => clearInterval(intervalID)
-        }
-    }, [snake, isGameOver, isPaused])
+   React.useEffect(() => {
+    if (!bounds || isPaused || isGameOver) return;
+    const intervalID = setInterval(() => {
+        moveSnake();
+    }, MOVE_INTERVAL);
+    return () => clearInterval(intervalID);
+}, [snake, isGameOver, isPaused, bounds]);
 
     const moveSnake = () => {
+        if(!bounds)return;
         const snakeHead = snake[0]
         const newHead = { ...snakeHead };
-
-        if(CheckGameOver(newHead,GAME_BOUNDS)){
-            setIsGameOver((prev)=>!prev);
-            return;
-        }
 
         switch (direction) {
             case Direction.UP:
@@ -54,9 +54,15 @@ export default function Game() {
                 newHead.x += 1;
                 break;  
         }
+
+        if(CheckGameOver(newHead,bounds)){
+            setIsGameOver(true);
+            return;
+        }
+
         if(CheckEatsFood(newHead,food,2)){
             setSnake([newHead,...snake]);
-            setFood({x:Math.floor(Math.random()*GAME_BOUNDS.xMax),y:Math.floor(Math.random()*GAME_BOUNDS.yMax)});
+            setFood(RandomFoodPosition(bounds));
             setScore(score + SCORE_INCREMENT);
         }else{
             setSnake([newHead,...snake.slice(0,-1)])
@@ -82,10 +88,38 @@ export default function Game() {
         }
        
     }
+    const handleBoardLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    // layout size includes the border; snake cells are positioned inside it
+    const innerW = width - BORDER_WIDTH * 2;
+    const innerH = height - BORDER_WIDTH * 2;
+    setBounds({
+        xMin: 0,
+        xMax: Math.floor(innerW / CELL_SIZE) - 1,
+        yMin: 0,
+        yMax: Math.floor(innerH / CELL_SIZE) - 1,
+    });
+};
+
+    const reloadGame = () => {
+        setSnake(SNAKE_INITIAL_POSITION);
+        setFood(FOOD_INITIAL_POSITION);
+        setDirection(Direction.RIGHT);
+        setIsGameOver(false);
+        setScore(0);
+    }
+
+    const pauseGame = () => {
+        setIsPaused(!isPaused);
+    }
+
     return (
         <PanGestureHandler onGestureEvent={handleGesture}>
             <SafeAreaView style={styles.container}>
-                <View style={styles.boundaries}>
+                <Header isPaused={isPaused} pauseGame={pauseGame} reloadGame={reloadGame}>
+                    <Text>Snake Game</Text>
+                </Header>
+                <View style={styles.boundaries} onLayout={handleBoardLayout}>
                     <Snake snake={snake} />
                     <Food x={food.x} y={food.y} />
                 </View>
@@ -98,12 +132,11 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: Colors.primary,
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     boundaries: {
-        width: '90%',
-        height: '80%',
+        flex:1,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
         borderColor: Colors.tertiary,
         borderWidth: 5,
         backgroundColor: Colors.secondary,
