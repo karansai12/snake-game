@@ -12,30 +12,30 @@ interface HeaderProps {
 export default function Header({ reloadGame, pauseGame, isPaused, children }: HeaderProps) {
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={reloadGame}>
-                <Ionicons name="refresh" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={pauseGame}>
-                <FontAwesome name={isPaused ? "play" : "pause"} size={24} color={Colors.primary} />
-            </TouchableOpacity>
-            {children}
-        </View>
+    <TouchableOpacity onPress={reloadGame} hitSlop={10}>
+        <Ionicons name="refresh" size={24} color={Colors.primary} />
+    </TouchableOpacity>
+
+    {children}
+
+    <TouchableOpacity onPress={pauseGame} hitSlop={10}>
+        <FontAwesome name={isPaused ? "play" : "pause"} size={24} color={Colors.primary} />
+    </TouchableOpacity>
+</View>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 0.05,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        borderColor: Colors.primary,
-        borderWidth: 12,
+        marginTop: 12,
+        marginHorizontal: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
-        borderBottomWidth: 0,
-        padding: 15,
         backgroundColor: Colors.background,
-    }
-
-})
+    },
+});

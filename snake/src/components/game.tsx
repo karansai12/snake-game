@@ -133,12 +133,14 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         flex: 1,
     },
-    boundaries: {
-        flex:1,
+        boundaries: {
+        flex: 1,
+        marginHorizontal: 12,
+        marginBottom: 12,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
         borderColor: Colors.tertiary,
         borderWidth: 5,
         backgroundColor: Colors.secondary,
-    }
+    },
 })
